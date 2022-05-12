@@ -16,26 +16,24 @@ bool Display::begin() {
         Debug.println("Display initialized");
 
         display.clearDisplay();
-        display.setTextSize(2);
+        display.setTextSize(3);
         display.setTextColor(SSD1306_WHITE);
         display.setCursor(10, 10);
         display.println(F("Cekej..."));
         display.display();
     }
 
-    Core1.loopEvery("Display", 100, [this] {
-        std::lock_guard<std::mutex> lg(HwLocks::I2C);
-        display.clearDisplay();
-        draw();
-        display.display();
-    });
-
     return true;
 }
 
 void Display::draw() {
-    display.setCursor(10, 0);
-    display.println(F("OK"));
+    std::lock_guard<std::mutex> lg(HwLocks::I2C);
+    display.clearDisplay();
+
+    display.setCursor(10, 10);
+    display.println(displayed);
+
+    display.display();
 }
 
 
