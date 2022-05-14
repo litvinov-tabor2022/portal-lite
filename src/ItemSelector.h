@@ -18,7 +18,7 @@ public:
 
     void switchPrev() {
         curr--;
-        if (curr < 0) curr = max - curr;
+        if (curr < 0) curr = max + curr; // yes, it's '+'
     }
 
     SelectedOp *current() {
@@ -26,7 +26,7 @@ public:
     }
 
 private:
-    u8 curr = 0;
+    int curr = 0; // the overflow must be allowed
     static const u8 max = 3;
 
     SelectedOp ops[max] = {

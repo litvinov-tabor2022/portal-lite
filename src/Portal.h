@@ -8,9 +8,24 @@
 class Portal {
 public:
     bool begin(PortalFramework *pFramework);
+
 private:
+    void reactToButtons();
+
+    void buttonLeftAction();
+
+    void buttonRightAction();
+
+    void buttonRightLongAction();
+
+    void displayCurrentItem();
+
+    PortalFramework *pFramework;
     Display display;
     ItemSelector itemSelector;
+
+    u16 rightPressedSince = 0, leftPressedSince = 0;
+    bool leftReacted = false, rightReacted = false;
 };
 
 
