@@ -22,22 +22,37 @@ bool Portal::begin(PortalFramework *pFramework) {
 }
 
 void Portal::buttonLeftAction() {
-    Debug.println("Left button pressed!");
+    if (pFramework->synchronizationMode.isStarted()) return; // ignore when sync. mode active
+
     itemSelector.switchPrev();
     displayCurrentItem();
 }
 
 void Portal::buttonRightAction() {
-    Debug.println("Right button pressed!");
+    if (pFramework->synchronizationMode.isStarted()) return; // ignore when sync. mode active
+
     itemSelector.switchNext();
     displayCurrentItem();
 }
 
 void Portal::buttonRightLongAction() {
-    Debug.println("Right button long-pressed!");
+    display.show("Cekej!", 20, 10, 3);
 
-    display.show("Serv. mod", 0, 10, 2, true);
-    // TODO implement
+    if (!pFramework->synchronizationMode.isStarted()) {
+        Debug.println("Starting synchronization mode...");
+        if (!pFramework->synchronizationMode.start()) {
+            Debug.println("Synchronization mode couldn't be started!");
+            return;
+        }
+        display.show("Serv. mod", 0, 10, 2, true);
+    } else {
+        Debug.println("Stopping synchronization mode...");
+        if (!pFramework->synchronizationMode.stop()) {
+            Debug.println("Synchronization mode couldn't be stopped!");
+            return;
+        }
+        displayCurrentItem();
+    }
 }
 
 void Portal::reactToButtons() {
