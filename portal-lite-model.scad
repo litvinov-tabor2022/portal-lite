@@ -36,7 +36,7 @@ buttons_spacing = 27;
 
 height = 38;
 
-main_box = [100, mfrc_shaft_size.y, height];
+main_box = [99.3, mfrc_shaft_size.y, height];
 main_inner_box = [main_box.x - 2 * fatness, main_box.y - 2 * fatness, main_box.z - 2 * fatness];
 
 main_cover_size_inner = [main_box.x + inset, main_box.y + inset, main_box.z + inset];
@@ -52,7 +52,7 @@ handholder_box = [handholder_inner_box.x + 1 + 2 * fatness, handholder_inner_box
 echo("HandHolder - Box size ", handholder_box.x, " x ", handholder_box.y, " x ", handholder_box.z);
 echo("HandHolder - Inner box size ", handholder_inner_box.x, " x ", handholder_inner_box.y, " x ", handholder_inner_box.z);
 
-board_pos = [35.4, 8.01, 11.6];
+board_pos = [35.7, 8.01, 11.6];
 
 // ---------------------------------------------
 
@@ -99,9 +99,9 @@ module MainPart() {
                 rotate([- 90]) cylinder(d = MFRC_holds_dia() + .3, h = 100, $fn = round_prec);
 
             // DEBUG:
-//            translate([fatness, - .01, mfrc_shaft_size.z]) cube([main_box.x - 2 * fatness, 100, 100]); // front & back
-//            translate([- .01, fatness]) cube([fatness + .02, main_box.y - 2 * fatness, 100]); // left
-//            translate([main_box.x - fatness - .01, fatness]) cube([fatness + .02, main_box.y - 2 * fatness, 100]); // right
+            // translate([fatness, - .01, mfrc_shaft_size.z]) cube([main_box.x - 2 * fatness, 100, 100]); // front & back
+            // translate([- .01, fatness]) cube([fatness + .02, main_box.y - 2 * fatness, 100]); // left
+            // translate([main_box.x - fatness - .01, fatness]) cube([fatness + .02, main_box.y - 2 * fatness, 100]); // right
         }
 
         translate([main_box.x - mfrc_shaft_size.x, 0]) difference() {
@@ -112,10 +112,10 @@ module MainPart() {
 
         if (DEBUG) translate(board_pos) Board();
 
-        if (DEBUG) translate([29.4, 2.5, 18.3]) rotate([0, 90, 180]) Charger();
+        if (DEBUG) translate([29.35, 2.5, 18.3]) rotate([0, 90, 180]) Charger();
 
         // charger slot
-        translate([fatness + charger_size.z + .2, 0, fatness]) difference() {
+        translate([fatness + charger_size.z + .1, 0, fatness]) difference() {
             cube([0.8, 3, charger_size.x]);
         }
 
@@ -137,7 +137,7 @@ module MainPart() {
             translate([- .01, 9]) cube([10, rtc_size.y + 1, 100]);
 
             // saving space
-            translate([5, -.01]) cube([52, 1 + .02, 100]);
+            translate([5, - .01]) cube([52, 1 + .02, 100]);
             translate([pcb_size.x + 1, 9]) cube([100, rtc_size.y + 1, 100]);
         }
 
@@ -173,14 +173,14 @@ module HandHolder() {
 difference() {
     union() {
         MainPart();
-        translate([(main_box.x - handholder_box.x) / 2, - handholder_box.y + fatness + .5, - .19]) HandHolder();
+        translate([(main_box.x - handholder_box.x) / 2, - handholder_box.y + fatness + 1.1, - .19]) HandHolder();
     }
 
     // cable hole for battery
     translate([(main_box.x - handholder_box.x) / 2 + 5, - .01, 16]) cube([handholder_box.x - 2 * 5, fatness + .52, 6.5]);
 
     // display hole
-    translate([(main_box.x - display_size.x) / 2, - .01, 23.5]) cube([display_size.x, fatness + .02, display_size.y]);
+    translate([(main_box.x - display_size.x) / 2, - .01, 24.5]) cube([display_size.x, fatness + .02, display_size.y - 1]);
 
     // button holes
     for (i = [- 1:2:1]) {
@@ -192,12 +192,18 @@ difference() {
     translate([- .01, 37.4, 9.6]) rotate([0, 90]) cylinder(d = switch_hole_dia(), h = fatness + .02, $fn = round_prec);
 
     // charger hole
-    translate([- .01, 2, 4.75]) cube([fatness + .02, 4.3, 9.7]);
+    translate([- .01, 2, 4.85]) color("red") cube([fatness + .02, 4.3, 9.7]);
+
+    // inner part of battery holder
+    translate([(main_box.x - handholder_box.x) / 2, fatness, mfrc_shaft_size.z]) cube([handholder_box.x, 2, 12]);
+
+    // debug:
+    // translate([- .01, - .01, 10]) cube([100, 100, 100]);
 }
 
 // buttons & display support
 //translate([fatness + 2 * inset, 3, 19])
-    translate([0, 55, 0])
+translate([0, 55, 0])
     difference() {
         size = [main_box.x - 2 * fatness - 4 * inset, 10.5, 13];
         union() {
