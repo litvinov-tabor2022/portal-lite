@@ -9,8 +9,12 @@ class Portal {
 public:
     bool begin(PortalFramework *pFramework);
 
+    void beep(u16 timeout);
+
 private:
     void reactToButtons();
+
+    bool updateTag(PlayerData playerData);
 
     void buttonLeftAction();
 
@@ -20,11 +24,18 @@ private:
 
     void displayCurrentItem();
 
+    void displayMsgLong(const String& msg, bool scroll);
+
+    void displayMsgShort(const String& msg, bool scroll);
+
+    void displayMsg(const String &msg, u16 timeout, bool scroll);
+
     PortalFramework *pFramework;
     Display display;
     ItemSelector itemSelector;
 
-    u16 rightPressedSince = 0, leftPressedSince = 0;
+    u32 rightPressedSince = 0, leftPressedSince = 0;
+    u32 lastWrite = 0;
     bool leftReacted = false, rightReacted = false;
 };
 

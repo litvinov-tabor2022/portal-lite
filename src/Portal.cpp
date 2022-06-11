@@ -13,10 +13,68 @@ bool Portal::begin(PortalFramework *pFramework) {
 
     pinMode(PIN_BUTTON_LEFT, INPUT_PULLDOWN);
     pinMode(PIN_BUTTON_RIGHT, INPUT_PULLDOWN);
+    pinMode(PIN_BUZZER, OUTPUT);
 
     Core1.loopEvery("buttonsCheck", 20, [this] {
         reactToButtons();
     });
+
+    pFramework->addErrorCallback([this](const String *err) {
+        this->displayMsgLong(*err, true);
+    });
+
+    pFramework->addOnConnectCallback([this](PlayerData playerData, bool isReload) {
+        if (!isReload) {
+            Debug.printf("Connected: player ID %d\n", playerData.user_id);
+
+            if (this->pFramework->synchronizationMode.isStarted()) {
+                Debug.println("Won't write to tag - I'm in synchronization mode");
+                return;
+            }
+
+            const u32 now = millis();
+            if (now - lastWrite < WRITE_MIN_DELAY) {
+                Debug.println("Won't write to tag - it was too fast");
+                return;
+            }
+
+            lastWrite = now;
+
+            if (!this->updateTag(playerData)) {
+                Debug.println("Could not write to tag!!");
+                this->displayMsgLong("Chyba zapisu!!!", false);
+            } else {
+                this->displayMsgShort("OK!", false);
+            }
+        } else {
+            Debug.println("Tag successfully reloaded");
+        }
+    });
+
+    pFramework->addOnDisconnectCallback([] {
+        Debug.println("Tag disconnected");
+    });
+
+    beep(BEEP_SHORT);
+    return true;
+}
+
+bool Portal::updateTag(PlayerData playerData) {
+    const i8 delta = itemSelector.current()->bonusPointsDelta;
+    Debug.printf("Updating tag - writing delta %d bonus points\n", delta);
+
+    playerData.bonus_points += delta;
+
+    const Transaction t = Transaction{
+            .time = pFramework->clocks.getCurrentTime(),
+            .user_id= static_cast<u8>(playerData.user_id),
+            .bonus_points = delta,
+    };
+
+    if (!(pFramework->writePlayerData(playerData) && pFramework->storage.appendTransaction(t))) {
+        Debug.println("Can't write to the tag or commit log!");
+        return false;
+    }
 
     return true;
 }
@@ -111,4 +169,28 @@ void Portal::reactToButtons() {
 
 void Portal::displayCurrentItem() {
     display.show(itemSelector.current()->name, 45, 3, 4);
+}
+
+void Portal::displayMsgLong(const String &msg, bool scroll) {
+    displayMsg(msg, 2000, scroll);
+    beep(BEEP_LONG);
+}
+
+void Portal::displayMsgShort(const String &msg, bool scroll) {
+    displayMsg(msg, 600, scroll);
+    beep(BEEP_SHORT);
+}
+
+void Portal::displayMsg(const String &msg, const u16 timeout, bool scroll) {
+    display.show(msg, 0, 0, 3, scroll);
+    Core0.once("show-value-back", [timeout, this]() {
+        Tasker::sleep(timeout);
+        this->displayCurrentItem();
+    });
+}
+
+void Portal::beep(const u16 timeout) {
+    digitalWrite(PIN_BUZZER, HIGH);
+    Tasker::sleep(timeout);
+    digitalWrite(PIN_BUZZER, LOW);
 }
