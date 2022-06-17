@@ -66,7 +66,7 @@ bool Portal::updateTag(PlayerData playerData) {
     playerData.bonus_points += delta;
 
     const Transaction t = Transaction{
-            .time = pFramework->clocks.getCurrentTime(),
+            .time = pFramework->getCurrentTime(),
             .user_id= static_cast<u8>(playerData.user_id),
             .bonus_points = delta,
     };
