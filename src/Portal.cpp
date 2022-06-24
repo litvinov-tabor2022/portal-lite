@@ -103,7 +103,7 @@ void Portal::buttonRightLongAction() {
             Debug.println("Synchronization mode couldn't be started!");
             return;
         }
-        display.show("Serv. mod", 0, 10, 2, true);
+        display.show(pFramework->getDeviceConfig().deviceId, 0, 10, 1, true);
     } else {
         Debug.println("Stopping synchronization mode...");
         if (!pFramework->synchronizationMode.stop()) {
