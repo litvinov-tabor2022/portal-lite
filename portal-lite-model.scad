@@ -1,7 +1,6 @@
 use <../modely/boxes.scad>
 use <../modely/esp32.scad>
 use <../modely/charger-module.scad>
-use <../modely/flexbatter.scad>
 use <../modely/buttons.scad>
 use <../modely/mfrc.scad>
 
@@ -25,18 +24,23 @@ display_board_size = [37.9, 2.1, 12.2];
 display_size = [26.1, 11.5];
 display_pos = [5.9, 0.3];
 
-batt_holder_size = [79, 22.5, 17.2];
+battery_length = 65.5;
+battery_dia = 19;
+batt_holder_size = [battery_dia + 2 * 1.5, 66 + 2 * 1.5, battery_dia + 2 * 1.5];
+
 esp32_size = ESP32_size();
 mfrc_shaft_size = Shaft_size_outter();
 charger_size = Charger_size();
 
 buttons_spacing = 27;
 
+support_inset = .8;
+
 // ---------------------------------------------
 
 height = 38;
 
-main_box = [99.3, mfrc_shaft_size.y, height];
+main_box = [99.4, mfrc_shaft_size.y, height];
 main_inner_box = [main_box.x - 2 * fatness, main_box.y - 2 * fatness, main_box.z - 2 * fatness];
 
 main_cover_size_inner = [main_box.x + inset, main_box.y + inset, main_box.z + inset];
@@ -45,9 +49,8 @@ main_cover_size_outter = [main_cover_size_inner.x + 2 * fatness, main_cover_size
 echo("Main - Box size ", main_box.x, " x ", main_box.y, " x ", main_box.z);
 echo("Main - Inner box size ", main_inner_box.x, " x ", main_inner_box.y, " x ", main_inner_box.z);
 
-handholder_inner_box = [batt_holder_size.y - .2, batt_holder_size.x, 21];
-handholder_box = [handholder_inner_box.x + 1 + 2 * fatness, handholder_inner_box.y + 1 + 2 * fatness, handholder_inner_box.z + 1 + 2 *
-    fatness];
+handholder_inner_box = [battery_dia + 2 * inset, battery_length + 2 * inset, battery_dia + 2 * inset];
+handholder_box = [handholder_inner_box.x + 2 * fatness, handholder_inner_box.y + 2 * fatness + 3, handholder_inner_box.z + 2 * fatness];
 
 echo("HandHolder - Box size ", handholder_box.x, " x ", handholder_box.y, " x ", handholder_box.z);
 echo("HandHolder - Inner box size ", handholder_inner_box.x, " x ", handholder_inner_box.y, " x ", handholder_inner_box.z);
@@ -74,12 +77,6 @@ module Display() {
         color("black") translate([0, display_board_size.y, 1]) cube([2.5, 8, 9.8]);
         color("black") translate([0, - 1, 1]) cube([2.5, 1, 9.8]);
         color("gray") translate([0, - 1.1]) rotate([90]) translate([8, 5]) text("Display", size = 5);
-    }
-}
-
-module BatteryHolder() {
-    translate([11.45, 11.4]) {
-        flexbatter(n = 1, l = 67, d = 18.4, hf = 0.75, shd = 3, eps = 0.28);
     }
 }
 
@@ -110,12 +107,12 @@ module MainPart() {
             translate([- .01, 0]) cube([1.5, mfrc_shaft_size.y, 100]);
         }
 
-        if (DEBUG) translate(board_pos) Board();
+        //        if (DEBUG) translate(board_pos) Board();
 
         if (DEBUG) translate([29.35, 2.5, 18.3]) rotate([0, 90, 180]) Charger();
 
         // charger slot
-        translate([fatness + charger_size.z + .1, 0, fatness]) difference() {
+        translate([fatness + charger_size.z + .2, 0, fatness]) difference() {
             cube([0.8, 3, charger_size.x]);
         }
 
@@ -125,7 +122,7 @@ module MainPart() {
 
             // buttons
             for (i = [- 1:2:1]) {
-                translate([(main_box.x - button_size().x) / 2 + (i * buttons_spacing), - button_top_height() + 4, 21]) Button();
+                translate([(main_box.x - button_size().x) / 2 + (i * buttons_spacing), - button_top_height() + 4, 21.3]) Button();
             }
         }
 
@@ -146,11 +143,11 @@ module MainPart() {
             translate([11.09, 8.05]) {
                 cube([4, 4, 22]);
             }
-            translate([0, 13.6, 0]) cube([fatness + 2, 2, 32]);
+            translate([0, 13.7, 0]) cube([fatness + 2, 2, 32]);
 
             translate([main_box.x - fatness - 2, 0, mfrc_shaft_size.z]) difference() {
                 cube([2 + .01, 15, 21.4]);
-                translate([- .01, 2.8, 8.25]) cube([100, 10.9, 100]);
+                translate([- .01, 2.8, 5.8]) cube([100, 10.9, 100]);
             }
         }
     }
@@ -159,12 +156,16 @@ module MainPart() {
 module HandHolder() {
     difference() {
         roundedCube(handholder_box, 2, false, false);
-        translate([fatness + .5, fatness + .5, fatness + .5]) {
-            cube([handholder_inner_box.x, handholder_inner_box.y, handholder_box.z]);
+        translate([(handholder_box.x - battery_dia) / 2, fatness + 1.5, fatness + .5]) {
+            cube([battery_dia + inset, battery_length + inset, 100]);
         }
+
+        // debug:
+        // cube([30, 10, 100]);
     }
 
-    translate([batt_holder_size.y + 1.9, 2.4, 1]) rotate([0, 0, 90]) BatteryHolder();
+    if (DEBUG) translate([handholder_box.x / 2 + inset / 2, 3, battery_dia / 2 + 2]) color("grey") rotate([0, 90, 90])
+        cylinder(d = battery_dia, h = battery_length, $fn = 25);
 }
 
 // ---------------------------------------------
@@ -173,18 +174,18 @@ module HandHolder() {
 difference() {
     union() {
         MainPart();
-        translate([(main_box.x - handholder_box.x) / 2, - handholder_box.y + fatness + 1.1, - .19]) HandHolder();
+        translate([(main_box.x - handholder_box.x) / 2, - handholder_box.y + 2.9, - .19]) HandHolder();
     }
 
     // cable hole for battery
-    translate([(main_box.x - handholder_box.x) / 2 + 5, - .01, 16]) cube([handholder_box.x - 2 * 5, fatness + .52, 6.5]);
+    translate([(main_box.x - handholder_box.x) / 2 + 5, - 1, 16]) cube([handholder_box.x - 2 * 5, 3, 5.5]);
 
     // display hole
     translate([(main_box.x - display_size.x) / 2, - .01, 24.5]) cube([display_size.x, fatness + .02, display_size.y - 1]);
 
     // button holes
     for (i = [- 1:2:1]) {
-        translate([(main_box.x - button_size().x) / 2 + (i * buttons_spacing) + button_size().x / 2, - .01, 21 + button_size().z / 2])
+        translate([(main_box.x - button_size().x) / 2 + (i * buttons_spacing) + button_size().x / 2, - .01, 21.3 + button_size().z / 2])
             rotate([- 90]) cylinder(d = button_hole_dia(), h = fatness + .02, $fn = round_prec);
     }
 
@@ -192,7 +193,7 @@ difference() {
     translate([- .01, 37.4, 9.6]) rotate([0, 90]) cylinder(d = switch_hole_dia(), h = fatness + .02, $fn = round_prec);
 
     // charger hole
-    translate([- .01, 2, 4.85]) color("red") cube([fatness + .02, 4.3, 9.7]);
+    translate([- .01, 2, 5]) color("red") cube([fatness + .02, 4.3, 10.2]);
 
     // inner part of battery holder
     translate([(main_box.x - handholder_box.x) / 2, fatness, mfrc_shaft_size.z]) cube([handholder_box.x, 2, 12]);
@@ -202,13 +203,13 @@ difference() {
 }
 
 // buttons & display support
-//translate([fatness + 2 * inset, 3, 19])
+//translate([fatness + support_inset, 3, 19])
 translate([0, 55, 0])
     difference() {
-        size = [main_box.x - 2 * fatness - 4 * inset, 10.5, 13];
+        size = [main_box.x - 2 * fatness - 2 * support_inset, 10.5, 13];
         union() {
             cube(size);
-            l = 1.4;
+            l = 1.3;
             translate([0, - l + .01]) cube([2, l, size.z]);
 
             // display
@@ -220,7 +221,7 @@ translate([0, 55, 0])
             translate([(button_size().x - button_cap_bottom_dia()) / 2, 0]) cube([button_cap_bottom_dia() + .4, 4, 100]);
             neck_width = 7;
             translate([(button_size().x - neck_width) / 2 + .2, 3.9]) cube([neck_width, 1, 100]);
-            translate([.1, 4.7]) cube([button_size().x + .2, 4.5, 100]);
+            translate([.2, 4.7]) cube([button_size().x, 4.5, 100]);
         }
 
         // display
@@ -230,7 +231,7 @@ translate([0, 55, 0])
         }
 
         // left support hole
-        translate([9.85, 4.85, - .01]) cube([4.5, 4.5, 3.1]);
+        translate([9.8 - 2 * support_inset, 4.85, - .01]) cube([4.6, 4.6, 3.1]);
 
         // cable hole on the right
         translate([size.x - 12, size.y - 5, - .01]) cube([8, 100, 100]);
